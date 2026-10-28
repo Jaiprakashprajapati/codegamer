@@ -1,0 +1,34 @@
+<!-- Merge into app/src/main/AndroidManifest.xml -->
+<manifest ...>
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application ...>
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:screenOrientation="sensorLandscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- NEW activities (all landscape) -->
+        <activity android:name=".JoinActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape" />
+
+        <activity android:name=".RoomActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape" />
+
+        <!-- already exists from before: just change orientation to landscape -->
+        <activity android:name=".GameActivity"
+            android:exported="false"
+            android:screenOrientation="sensorLandscape" />
+
+    </application>
+</manifest>
