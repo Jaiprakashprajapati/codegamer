@@ -51,6 +51,11 @@ public class RoomActivity extends AppCompatActivity {
         tvHint = findViewById(R.id.tvHint);
         rgKills = findViewById(R.id.rgKills);
         btnStart = findViewById(R.id.btnStart);
+        Button btnBack = findViewById(R.id.btnBack);
+
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
 
         tvRoomId.setOnClickListener(v -> {
             String raw = tvRoomId.getText().toString().replace("ROOM ID:", "").trim();

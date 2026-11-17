@@ -11,27 +11,55 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- TOP HUD: Scoreboard & Target Kills -->
+    <!-- TOP HUD: Scoreboard & Target Kills & Navigation Controls -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingStart="14dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="14dp">
+        android:paddingStart="12dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="12dp">
 
-        <TextView
-            android:id="@+id/tvPlayerScore"
-            style="@style/PixelText"
+        <LinearLayout
+            android:id="@+id/leftHudBar"
             android:layout_width="wrap_content"
-            android:layout_height="38dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:background="@drawable/px_card_blue"
-            android:gravity="center"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="4dp"
-            android:text="YOU: 0"
-            android:textSize="9sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnHome"
+                style="@style/PixelButton"
+                android:layout_width="48dp"
+                android:layout_height="38dp"
+                android:background="@drawable/px_btn_amber"
+                android:text="HOME"
+                android:textSize="8sp" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnPause"
+                style="@style/PixelButton"
+                android:layout_width="48dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/px_btn_cyan"
+                android:text="PAUSE"
+                android:textSize="8sp" />
+
+            <TextView
+                android:id="@+id/tvPlayerScore"
+                style="@style/PixelText"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:layout_marginStart="6dp"
+                android:background="@drawable/px_card_blue"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="4dp"
+                android:text="YOU: 0"
+                android:textSize="9sp" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvGoal"
@@ -41,8 +69,8 @@
             android:layout_centerHorizontal="true"
             android:background="@drawable/px_card_purple"
             android:gravity="center"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:paddingBottom="4dp"
             android:text="FIRST TO 5 KILLS"
             android:textColor="#FFE14D"
@@ -52,6 +80,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
             <TextView
@@ -61,8 +90,8 @@
                 android:layout_height="38dp"
                 android:background="@drawable/px_card_red"
                 android:gravity="center"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
                 android:paddingBottom="4dp"
                 android:text="ENEMY: 0"
                 android:textSize="9sp" />
@@ -72,7 +101,7 @@
                 style="@style/PixelButton"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="6dp"
                 android:background="@drawable/px_btn_pink"
                 android:text="X"
                 android:textSize="10sp" />
@@ -174,6 +203,84 @@
             android:text="FIRE"
             android:textColor="#FFFFFF"
             android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- PAUSE MENU OVERLAY PANEL -->
+    <LinearLayout
+        android:id="@+id/pausePanel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/px_card_dark"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingTop="18dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="22dp"
+        android:visibility="gone">
+
+        <TextView
+            style="@style/PixelText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shadowColor="#FF4F9A"
+            android:shadowDx="3"
+            android:shadowDy="3"
+            android:shadowRadius="1"
+            android:text="GAME PAUSED"
+            android:textColor="#FFE14D"
+            android:textSize="18sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnResume"
+            style="@style/PixelButton"
+            android:layout_width="220dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/px_btn_green"
+            android:text="RESUME GAME"
+            android:textSize="9sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnToggleSound"
+            style="@style/PixelButton"
+            android:layout_width="220dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/px_btn_cyan"
+            android:text="SOUND: ON"
+            android:textSize="9sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnToggleDifficulty"
+            style="@style/PixelButton"
+            android:layout_width="220dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/px_btn_amber"
+            android:text="AI BOT: MEDIUM"
+            android:textSize="9sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnPauseRestart"
+            style="@style/PixelButton"
+            android:layout_width="220dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/px_btn_pink"
+            android:text="RESTART MATCH"
+            android:textSize="9sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnPauseHome"
+            style="@style/PixelButton"
+            android:layout_width="220dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/px_card_blue"
+            android:text="HOME MENU"
+            android:textSize="9sp" />
     </LinearLayout>
 
     <!-- MATCH OVER CONTROLS (Appears on Victory or Defeat) -->

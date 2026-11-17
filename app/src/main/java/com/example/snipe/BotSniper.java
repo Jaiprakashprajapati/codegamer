@@ -8,6 +8,12 @@ import java.util.Random;
  */
 public class BotSniper {
 
+    public enum Difficulty {
+        EASY,
+        MEDIUM,
+        HARD
+    }
+
     public enum Stance {
         STAND,
         DUCK,
@@ -22,6 +28,7 @@ public class BotSniper {
 
     private final Random rng = new Random();
     private BotListener listener;
+    private Difficulty difficulty = Difficulty.MEDIUM;
 
     private int coverSlot = 1; // 0: Left Window, 1: Center Sandbag, 2: Right Tower
     private Stance currentStance = Stance.STAND;
@@ -37,6 +44,14 @@ public class BotSniper {
         this.listener = listener;
     }
 
+    public void setDifficulty(Difficulty diff) {
+        this.difficulty = diff;
+    }
+
+    public Difficulty getDifficulty() {
+        return difficulty;
+    }
+
     public void update(long dtMs, boolean playerDucked) {
         if (!isAlive) return;
 
@@ -49,8 +64,8 @@ public class BotSniper {
         // If bot is currently aiming at player, count down to firing
         if (isAimingAtPlayer) {
             aimStartTime += dtMs;
-            // Aim time: between 800ms and 1500ms
-            if (aimStartTime >= 1100) {
+            long aimTargetTime = (difficulty == Difficulty.EASY) ? 1600 : (difficulty == Difficulty.HARD) ? 650 : 1100;
+            if (aimStartTime >= aimTargetTime) {
                 isAimingAtPlayer = false;
                 fireAtPlayer(playerDucked);
             }
@@ -98,11 +113,13 @@ public class BotSniper {
         boolean hit = false;
         boolean headshot = false;
 
+        int hitAccuracy = (difficulty == Difficulty.EASY) ? 45 : (difficulty == Difficulty.HARD) ? 88 : 70;
+        int headshotAccuracy = (difficulty == Difficulty.EASY) ? 20 : (difficulty == Difficulty.HARD) ? 55 : 35;
+
         if (!playerDucked) {
-            // 70% chance to hit exposed player
-            hit = rng.nextInt(100) < 70;
+            hit = rng.nextInt(100) < hitAccuracy;
             if (hit) {
-                headshot = rng.nextInt(100) < 35;
+                headshot = rng.nextInt(100) < headshotAccuracy;
             }
         } else {
             // Player is safely in cover!
