@@ -41,6 +41,19 @@ public class Utils {
         ctx.getSharedPreferences("snipe", Context.MODE_PRIVATE).edit().putString("name", name).apply();
     }
 
+    // ---------- sound mute preference ----------
+    public static boolean isSoundMuted(Context ctx) {
+        SharedPreferences sp = ctx.getSharedPreferences("snipe", Context.MODE_PRIVATE);
+        boolean muted = sp.getBoolean("muted", false);
+        SoundEffects.muted = muted;
+        return muted;
+    }
+
+    public static void setSoundMuted(Context ctx, boolean muted) {
+        SoundEffects.muted = muted;
+        ctx.getSharedPreferences("snipe", Context.MODE_PRIVATE).edit().putBoolean("muted", muted).apply();
+    }
+
     // ---------- Room ID  <->  IP address ----------
     // Turns 192.168.43.1 into a short code like "1K9X2Z" (and back), so players type a Room ID.
 

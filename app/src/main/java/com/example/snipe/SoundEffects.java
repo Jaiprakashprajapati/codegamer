@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
  */
 public class SoundEffects {
 
+    public static boolean muted = false;
     private static final int SAMPLE_RATE = 22050;
     private static final ExecutorService audioPool = Executors.newCachedThreadPool();
     private static final Random rng = new Random();
@@ -153,6 +154,7 @@ public class SoundEffects {
     }
 
     private static void playPcm(short[] buffer) {
+        if (muted) return;
         try {
             AudioTrack track = new AudioTrack.Builder()
                     .setAudioAttributes(new AudioAttributes.Builder()

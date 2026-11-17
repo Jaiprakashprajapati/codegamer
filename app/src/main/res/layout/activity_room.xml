@@ -151,6 +151,18 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- Navigation Back/Home Button (top-left) -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnBack"
+        style="@style/PixelButton"
+        android:layout_width="60dp"
+        android:layout_height="42dp"
+        android:layout_gravity="top|start"
+        android:layout_margin="14dp"
+        android:background="@drawable/px_btn_pink"
+        android:text="&lt; BACK"
+        android:textSize="8sp" />
+
     <!-- Room ID badge (top-right) -->
     <TextView
         android:id="@+id/tvRoomId"

@@ -26,6 +26,11 @@ public class JoinActivity extends AppCompatActivity {
         etRoomId = findViewById(R.id.etRoomId);
         btnJoin = findViewById(R.id.btnJoin);
         tvStatus = findViewById(R.id.tvStatus);
+        Button btnBack = findViewById(R.id.btnBack);
+
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
 
         btnJoin.setOnClickListener(v -> join());
     }

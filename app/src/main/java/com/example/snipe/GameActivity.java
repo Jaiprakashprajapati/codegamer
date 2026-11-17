@@ -10,23 +10,31 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 /**
  * GameActivity: Orchestrates the 1v1 First-Person Sniper Match.
  * Supports both LAN Wi-Fi / Hotspot Room Matches and Solo AI Practice Mode.
+ * Features full Navigation (Home, Back, Pause) and Bot difficulty / Sound controls.
  */
 public class GameActivity extends AppCompatActivity {
 
     private SniperGameView gameView;
     private TextView tvPlayerScore, tvEnemyScore, tvGoal, tvStance;
     private Button btnFire, btnScope, btnSteady, btnDuck, btnPeekLeft, btnPeekRight;
+    private Button btnHome, btnPause, btnExit;
+
     private View matchOverPanel;
-    private Button btnRematch, btnLeave, btnExit;
+    private Button btnRematch, btnLeave;
+
+    private View pausePanel;
+    private Button btnResume, btnToggleSound, btnToggleDifficulty, btnPauseRestart, btnPauseHome;
 
     private boolean isBotMode = false;
     private boolean isHost = true;
+    private boolean isPaused = false;
     private String myName = "YOU";
     private String opponentName = "ENEMY";
     private int targetKills = 5;
@@ -59,12 +67,24 @@ public class GameActivity extends AppCompatActivity {
         bindViews();
         setupGameView();
         setupControls();
+        setupNavigationAndPause();
 
         if (isBotMode) {
             setupBotMode();
         } else {
             setupNetworkMode();
         }
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (pausePanel.getVisibility() == View.VISIBLE) {
+                    resumeGame();
+                } else {
+                    pauseGame();
+                }
+            }
+        });
     }
 
     private void bindViews() {
@@ -74,21 +94,33 @@ public class GameActivity extends AppCompatActivity {
         tvGoal = findViewById(R.id.tvGoal);
         tvStance = findViewById(R.id.tvStance);
 
+        btnHome = findViewById(R.id.btnHome);
+        btnPause = findViewById(R.id.btnPause);
+        btnExit = findViewById(R.id.btnExit);
+
         btnFire = findViewById(R.id.btnFire);
         btnScope = findViewById(R.id.btnScope);
         btnSteady = findViewById(R.id.btnSteady);
         btnDuck = findViewById(R.id.btnDuck);
         btnPeekLeft = findViewById(R.id.btnPeekLeft);
         btnPeekRight = findViewById(R.id.btnPeekRight);
-        btnExit = findViewById(R.id.btnExit);
 
         matchOverPanel = findViewById(R.id.matchOverPanel);
         btnRematch = findViewById(R.id.btnRematch);
         btnLeave = findViewById(R.id.btnLeave);
 
+        pausePanel = findViewById(R.id.pausePanel);
+        btnResume = findViewById(R.id.btnResume);
+        btnToggleSound = findViewById(R.id.btnToggleSound);
+        btnToggleDifficulty = findViewById(R.id.btnToggleDifficulty);
+        btnPauseRestart = findViewById(R.id.btnPauseRestart);
+        btnPauseHome = findViewById(R.id.btnPauseHome);
+
         tvPlayerScore.setText(myName + ": 0");
         tvEnemyScore.setText(opponentName + ": 0");
         tvGoal.setText("TARGET: " + targetKills + " KILLS");
+
+        updateSoundButtonText();
     }
 
     private void setupGameView() {
@@ -138,11 +170,16 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void setupControls() {
-        btnFire.setOnClickListener(v -> gameView.fireWeapon());
+        btnFire.setOnClickListener(v -> {
+            if (!isPaused) gameView.fireWeapon();
+        });
 
-        btnScope.setOnClickListener(v -> gameView.toggleScope());
+        btnScope.setOnClickListener(v -> {
+            if (!isPaused) gameView.toggleScope();
+        });
 
         btnSteady.setOnTouchListener((v, event) -> {
+            if (isPaused) return true;
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 gameView.setSteady(true);
             } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
@@ -152,6 +189,7 @@ public class GameActivity extends AppCompatActivity {
         });
 
         btnDuck.setOnClickListener(v -> {
+            if (isPaused) return;
             if (gameView.getPlayerStance() == BotSniper.Stance.DUCK) {
                 gameView.setStance(BotSniper.Stance.STAND);
             } else {
@@ -160,6 +198,7 @@ public class GameActivity extends AppCompatActivity {
         });
 
         btnPeekLeft.setOnClickListener(v -> {
+            if (isPaused) return;
             if (gameView.getPlayerStance() == BotSniper.Stance.PEEK_LEFT) {
                 gameView.setStance(BotSniper.Stance.STAND);
             } else {
@@ -168,6 +207,7 @@ public class GameActivity extends AppCompatActivity {
         });
 
         btnPeekRight.setOnClickListener(v -> {
+            if (isPaused) return;
             if (gameView.getPlayerStance() == BotSniper.Stance.PEEK_RIGHT) {
                 gameView.setStance(BotSniper.Stance.STAND);
             } else {
@@ -175,12 +215,10 @@ public class GameActivity extends AppCompatActivity {
             }
         });
 
-        btnExit.setOnClickListener(v -> confirmExit());
-
         btnRematch.setOnClickListener(v -> {
             matchOverPanel.setVisibility(View.GONE);
             gameView.resetMatch();
-            if (isBotMode) {
+            if (isBotMode && bot != null) {
                 bot.respawn();
             } else {
                 nm.send("REMATCH");
@@ -188,6 +226,89 @@ public class GameActivity extends AppCompatActivity {
         });
 
         btnLeave.setOnClickListener(v -> finish());
+    }
+
+    private void setupNavigationAndPause() {
+        btnHome.setOnClickListener(v -> confirmGoHome());
+        btnPause.setOnClickListener(v -> pauseGame());
+        btnExit.setOnClickListener(v -> confirmExit());
+
+        btnResume.setOnClickListener(v -> resumeGame());
+
+        btnToggleSound.setOnClickListener(v -> {
+            boolean currentMuted = Utils.isSoundMuted(this);
+            Utils.setSoundMuted(this, !currentMuted);
+            updateSoundButtonText();
+            Toast.makeText(this, SoundEffects.muted ? "Sound Effects Muted" : "Sound Effects Enabled", Toast.LENGTH_SHORT).show();
+        });
+
+        btnToggleDifficulty.setOnClickListener(v -> {
+            if (!isBotMode || bot == null) {
+                Toast.makeText(this, "Bot difficulty available in Solo mode", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            BotSniper.Difficulty cur = bot.getDifficulty();
+            BotSniper.Difficulty next = (cur == BotSniper.Difficulty.EASY) ? BotSniper.Difficulty.MEDIUM :
+                                        (cur == BotSniper.Difficulty.MEDIUM) ? BotSniper.Difficulty.HARD : BotSniper.Difficulty.EASY;
+            bot.setDifficulty(next);
+            updateDifficultyButtonText();
+            Toast.makeText(this, "Bot Difficulty set to " + next.name(), Toast.LENGTH_SHORT).show();
+        });
+
+        btnPauseRestart.setOnClickListener(v -> {
+            resumeGame();
+            gameView.resetMatch();
+            if (isBotMode && bot != null) {
+                bot.respawn();
+            } else {
+                nm.send("REMATCH");
+            }
+            Toast.makeText(this, "Match Restarted!", Toast.LENGTH_SHORT).show();
+        });
+
+        btnPauseHome.setOnClickListener(v -> confirmGoHome());
+    }
+
+    private void pauseGame() {
+        isPaused = true;
+        pausePanel.setVisibility(View.VISIBLE);
+        if (isBotMode) updateDifficultyButtonText();
+    }
+
+    private void resumeGame() {
+        isPaused = false;
+        pausePanel.setVisibility(View.GONE);
+    }
+
+    private void updateSoundButtonText() {
+        boolean muted = Utils.isSoundMuted(this);
+        btnToggleSound.setText("SOUND: " + (muted ? "OFF" : "ON"));
+    }
+
+    private void updateDifficultyButtonText() {
+        if (bot != null) {
+            btnToggleDifficulty.setText("AI BOT: " + bot.getDifficulty().name());
+        } else {
+            btnToggleDifficulty.setText("AI BOT: N/A");
+        }
+    }
+
+    private void confirmGoHome() {
+        new AlertDialog.Builder(this)
+                .setTitle("Return to Home")
+                .setMessage("Are you sure you want to return to the main menu?")
+                .setPositiveButton("Home", (d, w) -> finish())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void confirmExit() {
+        new AlertDialog.Builder(this)
+                .setTitle("Exit Match")
+                .setMessage("Are you sure you want to leave the duel?")
+                .setPositiveButton("Exit", (d, w) -> finish())
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void updateStanceLabel(BotSniper.Stance stance) {
@@ -232,8 +353,10 @@ public class GameActivity extends AppCompatActivity {
             @Override
             public void run() {
                 if (!isFinishing()) {
-                    boolean playerDucked = (gameView.getPlayerStance() == BotSniper.Stance.DUCK);
-                    bot.update(50, playerDucked);
+                    if (!isPaused) {
+                        boolean playerDucked = (gameView.getPlayerStance() == BotSniper.Stance.DUCK);
+                        bot.update(50, playerDucked);
+                    }
                     botHandler.postDelayed(this, 50);
                 }
             }
@@ -281,15 +404,6 @@ public class GameActivity extends AppCompatActivity {
                 Toast.makeText(this, "Rematch started!", Toast.LENGTH_SHORT).show();
             }
         } catch (Exception ignored) {}
-    }
-
-    private void confirmExit() {
-        new AlertDialog.Builder(this)
-                .setTitle("Exit Match")
-                .setMessage("Are you sure you want to leave the duel?")
-                .setPositiveButton("Exit", (d, w) -> finish())
-                .setNegativeButton("Cancel", null)
-                .show();
     }
 
     @Override
